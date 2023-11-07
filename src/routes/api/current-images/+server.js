@@ -50,9 +50,9 @@ export async function GET() {
   images.push(...await getImagesInDirectory(join(imageDirectory, dateFolder))); // Use await here.
 
   // Return a response with the array of images
-  return new Response(JSON.stringify(
-      {
+  return new Response(JSON.stringify({
         "general": general,
         "gallery": images
-      }));
+      })
+  );
 }
