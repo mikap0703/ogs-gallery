@@ -1,6 +1,6 @@
 <script>
-  import {onMount} from 'svelte';
-  import { fade } from 'svelte/transition';
+  import { onMount, onDestroy } from 'svelte';
+  import { fly } from 'svelte/transition';
 
   let galleryImages = [];
 
@@ -10,7 +10,7 @@
       const response = await fetch("/api/current-images");
       if (response.ok) {
         const data = await response.json();
-        galleryImages = data.gallery;
+        galleryImages = data.gallery.sort((a, b) => a.order - b.order);
       } else {
         console.error("Failed to fetch data");
       }
@@ -19,83 +19,77 @@
     }
   }
 
-  let currentImageIndex = 0;
-  let timer;
+  let currentIndex = 0;
+  let doRotation = true;
 
-  function startGallery() {
-    if (timer) clearInterval(timer);
-
-    timer = () => {
-      setInterval(() => {
-        if (currentImageIndex < galleryImages.length - 1) {
-          currentImageIndex++;
-        } else {
-          currentImageIndex = 0;
-        }
-      }, galleryImages[currentImageIndex].duration * 1000); // Convert duration to milliseconds
+  // Start the automatic rotation
+  function startRotation() {
+    function nextImage() {
+      if (!doRotation) {
+        return;
+      }
+      currentIndex = (currentIndex + 1) % galleryImages.length;
+      setTimeout(nextImage, galleryImages[currentIndex].duration * 1000);
     }
 
-    timer()
+    nextImage();
   }
 
-  // Call the API when the component is mounted
+  // Stop the automatic rotation
+  function stopRotation() {
+    doRotation = false;
+  }
+
+  // Start the rotation when the component is mounted
   onMount(async () => {
     await fetchData();
-    startGallery();
+    startRotation();
+  });
+
+  // Stop the rotation when the component is unmounted
+  onDestroy(() => {
+    stopRotation();
   });
 </script>
 
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-    }
-
-    .gallery {
+    .image-carousel {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        position: relative;
         overflow: hidden;
+        max-height: 100vh;
     }
 
-    .image-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
+    .image-carousel img {
+        flex: 0 0 auto;
+        max-width: 100vw;
+        max-height: 100vh;
+        width: auto;
+        height: auto;
+        display: none;
     }
 
-    .main-image {
-        max-width: 100%;
-        max-height: 100%;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        object-fit: contain;
-        z-index: 100;
+    .image-carousel img.active {
+        display: block;
+        animation: fade 1s ease-in-out;
     }
 
-    .blurred-background {
-        position: absolute;
-        min-width: 100%;
-        min-height: 100%;
-        filter: blur(15px); /* Adjust the blur strength as needed */
-        z-index: 0;
+    @keyframes fade {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
     }
 </style>
 
-<div class="gallery">
-    {#if galleryImages.length > 0}
-        {#key currentImageIndex}
-            <div class="image-container" in:fade={{ duration: 500 }} out:fade={{ duration: 500 }}>
-                <img class="main-image" src={galleryImages[currentImageIndex].img} alt="" />
-                <img class="blurred-background" src={galleryImages[currentImageIndex].img} alt="" />
-            </div>
-        {/key}
-    {/if}
+<div class="image-carousel">
+    {#each galleryImages as image, i (image)}
+        <img
+            src={image.img}
+            alt={`Image ${i + 1}`}
+            class="{i === currentIndex ? 'active' : ''}"
+            transition:fly
+        />
+    {/each}
 </div>
-
-
