@@ -2,7 +2,7 @@
 import fs from 'fs/promises'; // Use the promise-based version of 'fs'.
 import { join } from 'path';
 
-export async function GET(request) {
+export async function GET() {
   const imageDirectory = 'static/img'; // Set your base image directory
 
   async function getImagesInDirectory(directory) {
@@ -38,6 +38,10 @@ export async function GET(request) {
     return dirImages;
   }
 
+  const general = []
+
+  general.push(...await getImagesInDirectory(join(imageDirectory, 'general')));
+
   const images = [];
 
   images.push(...await getImagesInDirectory(join(imageDirectory, 'default'))); // Use await here.
@@ -46,5 +50,9 @@ export async function GET(request) {
   images.push(...await getImagesInDirectory(join(imageDirectory, dateFolder))); // Use await here.
 
   // Return a response with the array of images
-  return new Response(JSON.stringify(images));
+  return new Response(JSON.stringify(
+      {
+        "general": general,
+        "gallery": images
+      }));
 }
