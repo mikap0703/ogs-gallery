@@ -52,44 +52,17 @@
   });
 </script>
 
-<style>
-    .image-carousel {
-        display: flex;
-        overflow: hidden;
-        max-height: 100vh;
-    }
-
-    .image-carousel img {
-        flex: 0 0 auto;
-        max-width: 100vw;
-        max-height: 100vh;
-        width: auto;
-        height: auto;
-        display: none;
-    }
-
-    .image-carousel img.active {
-        display: block;
-        animation: fade 1s ease-in-out;
-    }
-
-    @keyframes fade {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-</style>
-
-<div class="image-carousel">
+<div class="w-screen h-screen overflow-hidden">
     {#each galleryImages as image, i (image)}
-        <img
-            src={image.img}
-            alt={`Image ${i + 1}`}
-            class="{i === currentIndex ? 'active' : ''}"
-            transition:fly
-        />
+        <div class="{i === currentIndex ? 'block' : 'hidden'} w-screen h-screen flex justify-center items-center">
+            <img
+                    src={image.img}
+                    alt={`Image ${i + 1}`}
+                    class="object-contain max-w-full max-h-full w-full h-auto mx-auto z-10"
+                    transition:fly
+            />
+        </div>
     {/each}
 </div>
+
+
