@@ -21,8 +21,27 @@ export async function GET() {
 
           const data = await fs.readFile(join(directory, file)); // Use await for reading the file.
 
-          // Convert the image data to a base64-encoded string.
-          const base64Image = Buffer.from(data).toString('base64');
+
+          // Determine the image type based on the file extension
+          const ext = match[3];
+          let imageType = '';
+          if (ext === 'png') {
+            imageType = 'image/png';
+          } else if (ext === 'jpeg' || ext === 'jpg') {
+            imageType = 'image/jpeg';
+          } else if (ext === 'gif') {
+            imageType = 'image/gif';
+          } else if (ext === 'bmp') {
+            imageType = 'image/bmp';
+          } else if (ext === 'webp') {
+            imageType = 'image/webp';
+          } else {
+            // Add conditions for other image types here
+            // For example, you can add support for 'svg', 'tiff', etc.
+          }
+
+          // Convert the image data to a base64-encoded string with the appropriate data URI
+          const base64Image = `data:${imageType};base64, ${Buffer.from(data).toString('base64')}`
 
           dirImages.push({
             img: base64Image, // No need to stringify base64Image as it's already a string.
