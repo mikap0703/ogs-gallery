@@ -52,7 +52,7 @@
   });
 </script>
 
-<div class="w-screen h-screen overflow-hidden">
+<div class="w-screen h-screen overflow-hidden bg-[#105569]">
     {#each galleryImages as image, i (image)}
         <div class="{i === currentIndex ? 'block' : 'hidden'} w-screen h-screen flex justify-center items-center">
             <img
