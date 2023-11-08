@@ -7,9 +7,14 @@ export async function GET() {
 
   async function getImagesInDirectory(directory) {
     const dirImages = [];
+    let files = []
 
     try {
-      const files = await fs.readdir(directory); // Use await to ensure async completion.
+      files = await fs.readdir(directory);
+    } catch (error) {
+      return []
+    }
+    try {
 
       for (const file of files) {
         const regex = /(\d+)(?:-(\d+))?\.(\w+)$/;
