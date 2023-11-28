@@ -2,15 +2,36 @@
   import { onMount, onDestroy } from 'svelte';
   import { fly } from 'svelte/transition';
 
+  function getDate() {
+    const today = new Date();
+
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed, so add 1
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
   let galleryImages = [];
+  let lastFetch = null;
 
   // Fetch data from the API endpoint
   async function fetchData() {
     try {
-      const response = await fetch("/api/current-images");
+      const currentDate = getDate(); // Assuming getDate() retrieves the current date
+
+      const response = await fetch("/api/current-images", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ date: getDate() })
+      });
+
       if (response.ok) {
         const data = await response.json();
         galleryImages = data.gallery.sort((a, b) => a.order - b.order);
+        lastFetch = getDate()
       } else {
         console.error("Failed to fetch data");
       }
@@ -19,16 +40,26 @@
     }
   }
 
-  let currentIndex = 0;
+  let currentIndex = -1;
   let doRotation = true;
 
   // Start the automatic rotation
   function startRotation() {
-    function nextImage() {
+    async function nextImage() {
+      if (lastFetch !== getDate()) {
+        galleryImages = [];
+        await fetchData();
+      }
+
       if (!doRotation) {
         return;
       }
-      currentIndex = (currentIndex + 1) % galleryImages.length;
+
+      currentIndex++
+      if (currentIndex >= galleryImages.length) {
+        currentIndex = 0;
+      }
+
       setTimeout(nextImage, galleryImages[currentIndex].duration * 1000);
     }
 
